@@ -1,4 +1,11 @@
-*.iso
 *.qcow2
+*.iso
+*.img
+*.raw
+
+image/keys/
+image/cloud-init/user-data
+
+.vscode
 .venv
 __pycache__
