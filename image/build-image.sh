@@ -3,7 +3,6 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 # Объявления переменных
-DISK_SIZE="4G"
 
 # Переменные для скачивания образа
 IMAGE_URL="https://cloud.debian.org/images/cloud/trixie/20261001-2618/debian-13-genericcloud-amd64-20261001-2618.qcow2"
@@ -21,6 +20,10 @@ META_DATA="$CLOUD_INIT_DIR/meta-data"
 
 # Переменные для создания seed.iso
 SEED_ISO="seed.iso"
+
+# Переменные для создание диска
+DISK_NAME="disk.qcow2"
+DISK_SIZE="4G"
 
 # Скачивание образа
 if [ ! -f "$BASE_IMAGE" ]; then
@@ -47,3 +50,13 @@ sed "s|__SSH_PUBLIC_KEY__|$PUB_KEY|" "$USER_DATA_TEMPLATE" > "$USER_DATA"
 # Создание iso
 echo "Generating seed.iso"
 cloud-localds "$SEED_ISO" "$USER_DATA" "$META_DATA"
+
+# Создания диска
+if [ ! -f "$DISK_NAME" ]; then
+  echo "Creating disk"
+  qemu-img create -f qcow2 -F qcow2 -b "$BASE_IMAGE" "$DISK_NAME" "$DISK_SIZE"
+else
+  echo "Disk already create"
+fi
+
+echo "Done. run run-vm.sh"
