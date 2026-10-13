@@ -1,0 +1,16 @@
+#cloud-config
+# Шаблонный файл. Скрипт build-image.sh подставляет нужный ssh_keys
+
+hostname: my-vm
+
+users:
+  - name: debian
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: [sudo]
+    lock_passwd: false
+    plain_text_passwd: debian
+    ssh_authorized_keys:
+      - __SSH_PUBLIC_KEY__
+
+ssh_pwauth: false
