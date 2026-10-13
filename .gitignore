@@ -2,6 +2,7 @@
 *.iso
 *.img
 *.raw
+wget-log
 
 image/keys/
 image/cloud-init/user-data
