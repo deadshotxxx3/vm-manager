@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from app.qmp import qmp_command, QMPError
+from app import vm
 
 
 app = FastAPI(title="vm-manager")
@@ -16,7 +17,11 @@ async def status():
 
 @app.post("/api/vm/start")
 async def start():
-    pass
+    try:
+        await vm.start()
+    except vm.VMError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    return {"result": "started"}
 
 
 @app.post("/api/vm/reboot")
@@ -33,5 +38,5 @@ async def stop():
     try:
         await qmp_command("system_powerdown")
     except QMPError as e:
-        raise HTTPException(status_code=401,detail=str(e))
+        raise HTTPException(status_code=409,detail=str(e))
     return {"result": "stopping"}
