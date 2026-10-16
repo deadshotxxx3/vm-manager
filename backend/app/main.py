@@ -1,7 +1,24 @@
+import asyncssh
+
 from fastapi import FastAPI, HTTPException, WebSocket
 from app.qmp import qmp_command, QMPError
 from app import vm
 from app.terminal import bridge
+from pathlib import Path
+
+
+# Костанты для serial
+SERIAL_SOCK = "/tmp/serial.sock"
+
+# костатнты для ssh ключа
+SSH_HOST = "127.0.0.1"
+SSH_PORT = 2222
+SSH_USER = "debian"
+SSH_KEY = Path(__file__).resolve().parents[2] / "image" / "keys" / "ssh_key"
+SSH_TIMEOUT = 10
+TERM_TYPE = "xterm-256color"
+TERM_COLS = 80
+TERM_ROWS = 24
 
 
 app = FastAPI(title="vm-manager")
@@ -20,6 +37,32 @@ async def serial_ws(websocket):
         await bridge(websocket, reader, writer)
     finally:
         writer.close()
+
+
+@app.websocket("/ws/ssh")
+async def ssh_ws(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        conn = await asyncssh.connect(
+            SSH_HOST,
+            port=SSH_PORT,
+            username=SSH_USER,
+            client_keys=[str(SSH_KEY)],
+            known_hosts=None,
+            connect_timeout=SSH_TIMEOUT,
+        )
+    except (OSError, asyncssh.Error):
+        await websocket.close(code=1011, reason="SSH connection failed")
+        return
+    try:
+        process = await conn.create_process(
+            term_type=TERM_TYPE,
+            term_size=(TERM_COLS, TERM_ROWS),
+            encoding=None,
+        )
+        await bridge(websocket, process.stdout, process.stdin)
+    finally:
+        conn.close()
 
 
 @app.get("/api/vm/status")
