@@ -1,6 +1,8 @@
 import asyncio
 from fastapi import WebSocketDisconnect
 
+CNT_BIT_TO_READ = 1024
+
 
 async def browser_to_vm(websocket, writer):
     try:
@@ -14,7 +16,7 @@ async def browser_to_vm(websocket, writer):
 
 async def vm_to_browser(reader, websocket):
     while True:
-        data = await reader.read(1024)
+        data = await reader.read(CNT_BIT_TO_READ)
         if not data:
             break
         await websocket.send_bytes(data)
