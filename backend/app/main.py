@@ -1,4 +1,5 @@
 import asyncssh
+import asyncio
 
 from fastapi import FastAPI, HTTPException, WebSocket
 from app.qmp import qmp_command, QMPError
@@ -25,7 +26,7 @@ app = FastAPI(title="vm-manager")
 
 
 @app.websocket("/ws/serial")
-async def serial_ws(websocket):
+async def serial_ws(websocket: WebSocket):
     await websocket.accept()
     try:
         reader, writer = await asyncio.open_unix_connection(SERIAL_SOCK)
