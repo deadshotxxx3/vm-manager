@@ -12,7 +12,7 @@ class VMError(Exception):
     pass
 
 
-async def is_running():
+async def is_running() -> bool:
     try:
         await qmp_command("query-status")
         return True
@@ -20,7 +20,7 @@ async def is_running():
         return False
 
 
-async def start():
+async def start() -> None:
     global process
     if await is_running():
         raise VMError("VM is already running")
