@@ -6,6 +6,10 @@ const WS_URL = `ws://${location.host}/ws`
 const TERM_COLS = 80
 const TERM_ROWS = 24
 
+const GREEN = '\x1b[32m'
+const RED = '\x1b[31m'
+const RESET = '\x1b[0m'
+
 function Terminal({ mode }) {
   const containerRef = useRef(null)
 
@@ -17,7 +21,7 @@ function Terminal({ mode }) {
     ws.binaryType = 'arraybuffer'
 
     ws.onopen = () => {
-      term.write(`[подключено: ${mode}]\r\n`)
+      term.write(`${GREEN}[подключено: ${mode}]${RESET}\r\n`)
       if (mode === 'serial') {
         ws.send('\r')
       }
@@ -28,7 +32,7 @@ function Terminal({ mode }) {
     }
 
     ws.onclose = (event) => {
-      term.write(`\r\n[соединение закрыто: ${event.code} ${event.reason}]\r\n`)
+      term.write(`\r\n${RED}[соединение закрыто: ${event.code} ${event.reason}]${RESET}\r\n`)
     }
 
     term.onData((data) => {
