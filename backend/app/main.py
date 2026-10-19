@@ -1,22 +1,24 @@
-import asyncssh
-import asyncio
 
-from fastapi import FastAPI, HTTPException, WebSocket
-from app.qmp import qmp_command, QMPError
-from app import vm
-from app.terminal import bridge
+import asyncio
 from pathlib import Path
 
+import asyncssh
+from app import vm
+from app.qmp import QMPError, qmp_command
+from app.terminal import bridge
+from fastapi import FastAPI, HTTPException, WebSocket
 
-# Костанты для serial
+# serial
 SERIAL_SOCK = "/tmp/serial.sock"
 
-# костатнты для ssh ключа
+# ssh ключ
 SSH_HOST = "127.0.0.1"
 SSH_PORT = 2222
 SSH_USER = "debian"
 SSH_KEY = Path(__file__).resolve().parents[2] / "image" / "keys" / "ssh_key"
 SSH_TIMEOUT = 10
+
+# терминал
 TERM_TYPE = "xterm-256color"
 TERM_COLS = 80
 TERM_ROWS = 24
@@ -26,7 +28,7 @@ app = FastAPI(title="vm-manager")
 
 
 @app.websocket("/ws/serial")
-async def serial_ws(websocket: WebSocket):
+async def serial_ws(websocket: WebSocket) -> None:
     await websocket.accept()
     try:
         reader, writer = await asyncio.open_unix_connection(SERIAL_SOCK)
@@ -41,7 +43,7 @@ async def serial_ws(websocket: WebSocket):
 
 
 @app.websocket("/ws/ssh")
-async def ssh_ws(websocket: WebSocket):
+async def ssh_ws(websocket: WebSocket) -> None:
     await websocket.accept()
     try:
         conn = await asyncssh.connect(
@@ -67,7 +69,7 @@ async def ssh_ws(websocket: WebSocket):
 
 
 @app.get("/api/vm/status")
-async def status():
+async def status() -> dict:
     try:
         result = await qmp_command("query-status")
         return {"running": True, "status": result["status"]}
@@ -76,7 +78,7 @@ async def status():
 
 
 @app.post("/api/vm/start")
-async def start():
+async def start() -> dict[str, str]:
     try:
         await vm.start()
     except vm.VMError as e:
@@ -85,7 +87,7 @@ async def start():
 
 
 @app.post("/api/vm/reboot")
-async def reboot():
+async def reboot() -> dict[str, str]:
     try:
         await qmp_command("system_reset")
     except QMPError as e:
@@ -94,9 +96,9 @@ async def reboot():
 
 
 @app.post("/api/vm/stop")
-async def stop():
+async def stop() -> dict[str, str]:
     try:
         await qmp_command("system_powerdown")
     except QMPError as e:
-        raise HTTPException(status_code=409,detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e))
     return {"result": "stopping"}
