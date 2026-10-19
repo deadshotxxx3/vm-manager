@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-from app.qmp import qmp_command, QMPError
+from app.qmp import QMPError, qmp_command
 
 RUN_SCRIPT = Path(__file__).resolve().parents[2] / "image" / "run-vm.sh"
 
